@@ -33,6 +33,14 @@ jobs:
           ./vcpkg install boost-locale:x64-windows-static-md boost-json:x64-windows-static-md
           Pop-Location
           "BOOST_ROOT=$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows-static-md" >> $env:GITHUB_ENV
+      - name: Check the build directory is not hardcoded
+        shell: bash
+        run: |
+          # CI only ever configures into build/, so a path hardcoded to that directory looks fine here while breaking every other binary dir — including this repository's own vcpkg-release preset, whose binaryDir is build-release.
+          if grep -n 'CMAKE_SOURCE_DIR}/build/' CMakeLists.txt tests/CMakeLists.txt; then
+            echo '::error::resolve vcpkg_installed from CMAKE_BINARY_DIR rather than a hardcoded build/ directory'
+            exit 1
+          fi
       - name: Configure
         shell: pwsh
         run: >
