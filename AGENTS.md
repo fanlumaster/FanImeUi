@@ -28,6 +28,10 @@ ctest --test-dir build-release -C Release --output-on-failure
 
 CI 现在也跑这一步。在此之前它只有 Configure 和 Build，测试**编译**得到检查而**断言**不会，所以一条失败的用例可以长期躺在 main 上而 CI 全绿。
 
+有 7 个用例依赖**已安装的词库数据**（`others.db` 的 kaomoji 表、`msime.db`、`helpcodes/*.txt`），在裸机和 CI 上没有这些文件。它们通过 `test::require_data_files({...})` 在缺文件时报 `[SKIP]` 而不是 `[FAIL]`——在没有数据的机器上让它们失败，说明不了代码的任何问题。装了输入法的开发机上它们照常执行。
+
+新写依赖词库的用例时沿用这个模式，不要让它在 CI 上红。
+
 `src/ipc/ipc.h` 里有 14 条 `static_assert` 守着协议 ABI，那些是编译期的，构建时就会检查。
 
 ## uiAccess 与 Topmost 时序

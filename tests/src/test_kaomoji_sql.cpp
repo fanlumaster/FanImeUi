@@ -79,8 +79,20 @@ bool AnyPinyinPrefix(const std::vector<std::string> &rows, const std::string &pi
 }
 } // namespace
 
+namespace
+{
+// others.db only exists once the IME is installed, so these cases have nothing to assert on a bare
+// machine. RunQuery already returns an empty vector in that situation; skip rather than read that
+// as a failure.
+void RequireKaomojiDatabase()
+{
+    test::require_data_files({CommonUtils::get_ime_data_path() + "\\others.db"});
+}
+} // namespace
+
 TEST_CASE(kaomoji_sql_single_char_prefix_returns_rows)
 {
+    RequireKaomojiDatabase();
     // "Mk": the typed code after M is "k". The exact query must match pinyin "k*".
     const auto rows = RunQuery("k", 10);
     REQUIRE(!rows.empty());
@@ -88,24 +100,28 @@ TEST_CASE(kaomoji_sql_single_char_prefix_returns_rows)
 
 TEST_CASE(kaomoji_sql_full_pinyin_prefix_returns_rows)
 {
+    RequireKaomojiDatabase();
     const auto rows = RunQuery("kaixin", 10);
     REQUIRE(!rows.empty());
 }
 
 TEST_CASE(kaomoji_sql_jianpin_prefix_returns_rows)
 {
+    RequireKaomojiDatabase();
     const auto rows = RunQuery("kx", 10);
     REQUIRE(!rows.empty());
 }
 
 TEST_CASE(kaomoji_sql_english_prefix_returns_rows)
 {
+    RequireKaomojiDatabase();
     const auto rows = RunQuery("kiss", 10);
     REQUIRE(!rows.empty());
 }
 
 TEST_CASE(kaomoji_sql_empty_prefix_matches_everything)
 {
+    RequireKaomojiDatabase();
     const auto rows = RunQuery("", 10);
     REQUIRE(!rows.empty());
     REQUIRE(rows.size() <= 10);
@@ -113,6 +129,7 @@ TEST_CASE(kaomoji_sql_empty_prefix_matches_everything)
 
 TEST_CASE(kaomoji_sql_limits_result_count)
 {
+    RequireKaomojiDatabase();
     const auto rows = RunQuery("k", 3);
     REQUIRE(rows.size() <= 3);
 }
