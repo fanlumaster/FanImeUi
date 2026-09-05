@@ -1,4 +1,5 @@
 #include "tests/includes/test_framework.h"
+#include "utils/common_utils.h"
 #include "MetasequoiaImeEngine/common/helpcode_utils.h"
 #include "MetasequoiaImeEngine/quanpin/autocorrect_table.h"
 #include "MetasequoiaImeEngine/quanpin/quanpin_dictionary.h"
@@ -103,8 +104,28 @@ TEST_CASE(QuanpinSchemeTrailingApostropheIsPreservedInPreeditSegmentation)
     REQUIRE_EQ(request.key_strokes.size(), static_cast<size_t>(5));
 }
 
+namespace
+{
+// Both the helpcode tables and msime.db live in the installed IME data directory, so these two
+// cases cannot run on a bare machine. Skip rather than report a failure that says nothing about
+// the code under test.
+void RequireHelpcodeTables()
+{
+    const std::string root = CommonUtils::get_ime_data_path() + "\\helpcodes\\";
+    test::require_data_files({root + "helpcode.txt", root + "zrm_helpcode_big_unique.txt",
+                              root + "shouyou2_0_helpcode.txt", root + "shouyouplus_helpcode.txt",
+                              root + "xiaohe_helpcode.txt"});
+}
+
+void RequireMainDictionary()
+{
+    test::require_data_files({CommonUtils::get_ime_data_path() + "\\msime.db"});
+}
+} // namespace
+
 TEST_CASE(HelpcodeSchemaSelectionLoadsAllSupportedSchemas)
 {
+    RequireHelpcodeTables();
     const std::vector<std::pair<std::string, std::string>> schemas{
         {"lantian", "(KK)"}, {"ziranma", "(KA)"}, {"shouyou2_0", "(KV)"}, {"shouyouplus", "(KE)"}, {"xiaohe", "(KK)"},
     };
@@ -171,6 +192,7 @@ TEST_CASE(QuanpinSyllableGraphKeepsEveryCompleteSegmentation)
 
 TEST_CASE(QuanpinDictionaryUsesSyllableGraphAlternativeSegmentations)
 {
+    RequireMainDictionary();
     QuanpinDictionary dictionary;
 
     const auto fangan_candidates = dictionary.query("fangan", "fan'gan");
