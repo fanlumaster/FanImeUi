@@ -52,7 +52,9 @@ Boost 是静态链接但没有写进 `vcpkg.json`，所以只能用 classic 模�
 
 ## 生成文件
 
-`scripts/prepare_env.py` 会覆盖根目录的 `.clangd`、`CMakeLists.txt` 和 `CMakePresets.json`。长期改动要同步到 `scripts/config_files/` 下的同名模板，否则下次生成就丢了。该脚本按固定行号替换模板内容，调整模板前要一起检查脚本索引。
+`scripts/prepare_env.py` 会覆盖根目录的 `.clangd`、`CMakePresets.json` 和 `tests/CMakePresets.json`，内容来自 `scripts/config_files/` 下的同名模板。改这三个文件的长期行为要同步改模板，否则下次生成就丢了。脚本按固定行号替换模板内容，调整模板前要一起检查脚本里的索引。
+
+**`CMakeLists.txt` 和 `tests/CMakeLists.txt` 不再生成。** 它们曾经也走模板覆盖，而模板落后了 321 行和 58 行，跑一次脚本就会把 468 行的构建文件截成 147 行，8 个 `add_executable` 目标只剩 1 个。模板注入的唯一内容是 `Boost_ROOT`，而 `CMakeLists.txt` 自己就从环境变量读它，所以那两段生成逻辑连同模板一起删掉了。别再加回来。
 
 ## 提交
 
