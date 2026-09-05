@@ -1,3 +1,11 @@
+> **This repository has moved and is archived.**
+>
+> Its contents are now [`server/`](https://github.com/metasequoiaime/MSIME-Windows/tree/main/server) in
+> [metasequoiaime/MSIME-Windows](https://github.com/metasequoiaime/MSIME-Windows), which holds the Server: candidate state, configuration, dictionaries, the named pipe service, and the native and WebView2 window hosts.
+> Full history was preserved through the move, so `git log` and `git blame` follow files into their new paths.
+>
+> Open issues and pull requests belong in MSIME-Windows. Nothing here will be updated.
+
 # Metasequoia IME Server(水杉输入法 Server 端)
 
 This is the server end of [MSIME-Windows](https://github.com/metasequoiaime/MSIME-Windows).
