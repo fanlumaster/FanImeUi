@@ -81,18 +81,10 @@ lines[14] = f'      "-I{sciter_path}",\n'
 with open(dot_clangd_output_file, "w", encoding="utf-8") as f:
     f.writelines(lines)
 
-#
-# project_root/CMakeLists.txt
-#
-CMakeLists_file = os.path.join(
-    MetasequoiaImeServer_root_path, "scripts", "config_files", "CMakeLists.txt"
-)
-CMakeLists_output_file = os.path.join(MetasequoiaImeServer_root_path, "CMakeLists.txt")
-with open(CMakeLists_file, "r", encoding="utf-8") as f:
-    lines = f.readlines()
-lines[8] = f'set(Boost_ROOT "{boost_path}")\n'
-with open(CMakeLists_output_file, "w", encoding="utf-8") as f:
-    f.writelines(lines)
+# CMakeLists.txt and tests/CMakeLists.txt are no longer generated. They used to be copied over from
+# scripts/config_files/, which silently truncated them: the templates had fallen 321 and 58 lines
+# behind, so running this script replaced a working build with an old one. The only value they
+# injected was Boost_ROOT, and CMakeLists.txt already reads that from the environment itself.
 
 #
 # CMakePresets.json
@@ -110,21 +102,6 @@ lines[11] = (
     f'        "CMAKE_TOOLCHAIN_FILE": "{vcpkg_root}/scripts/buildsystems/vcpkg.cmake",\n'
 )
 with open(CMakePresets_file_output_file, "w", encoding="utf-8") as f:
-    f.writelines(lines)
-
-#
-# project_root/tests/CMakeLists.txt
-#
-Tests_CMakeLists_file = os.path.join(
-    MetasequoiaImeServer_root_path, "scripts", "config_files", "tests", "CMakeLists.txt"
-)
-Tests_CMakeLists_output_file = os.path.join(
-    MetasequoiaImeServer_root_path, "tests", "CMakeLists.txt"
-)
-with open(Tests_CMakeLists_file, "r", encoding="utf-8") as f:
-    lines = f.readlines()
-lines[10] = f'set(Boost_ROOT "{boost_path}")\n'
-with open(Tests_CMakeLists_output_file, "w", encoding="utf-8") as f:
     f.writelines(lines)
 
 #
