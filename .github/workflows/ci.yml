@@ -45,3 +45,9 @@ jobs:
       - name: Build
         shell: pwsh
         run: cmake --build build-release --config Release --parallel
+
+      # BUILD_TESTING already pulls tests/ into the build, so a compile break in the tests was
+      # caught; a failing assertion was not, because nothing ran them.
+      - name: Test
+        shell: pwsh
+        run: ctest --test-dir build-release -C Release --output-on-failure --timeout 300
