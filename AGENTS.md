@@ -4,35 +4,33 @@
 
 本仓是常驻后端进程：输入引擎与候选状态、配置、词典、Named Pipe 服务，以及候选窗、悬浮工具栏、托盘菜单、设置窗口的原生宿主与 WebView2 控制器。
 
-## 构建目录必须叫 build
+## vcpkg_installed 的解析
 
-`CMakeLists.txt` 有三处写死了 `${CMAKE_SOURCE_DIR}/build/vcpkg_installed`：
+`CMakeLists.txt` 四处引用 `vcpkg_installed`，全部走 `${CMAKE_BINARY_DIR}`（`:257`、`:322`、`:369`、`:412`）。其中 `:369` 的 `WEBVIEW2_VCPKG_ROOT` 供 WebView2 loader 的导入库和运行时 DLL 拷贝使用。
 
-- `:257` 一处 include 路径
-- `:369` `WEBVIEW2_VCPKG_ROOT`，供 WebView2 loader 的导入库和运行时 DLL 拷贝使用
-- `:412` 另一处 include 路径
-
-所以 binary dir 只能是字面的 `build`。用别的名字会在链接 `MetasequoiaImeSettings` 时失败：
+**不要改回 `${CMAKE_SOURCE_DIR}/build/...`。** 那样 binary dir 就只能叫字面的 `build`，本仓自带的 `vcpkg-release` preset（`binaryDir` 是 `build-release`）和 `scripts/lcompile-release.ps1` 都会在链接 `MetasequoiaImeSettings` 时失败：
 
 ```
 LINK : fatal error LNK1181: cannot open input file '...\build\vcpkg_installed\x64-windows\lib\WebView2Loader.dll.lib'
 ```
 
-**本仓自带的 `vcpkg-release` preset 就踩在这上面**——它的 `binaryDir` 是 `build-release`，所以 `cmake --preset=vcpkg-release` 目前构建不过。`scripts/lcompile-release.ps1` 走的也是这条。
+CI 刻意构建到 `build-release` 而不是 `build`，为的就是让这条不会悄悄退回去——两者在目录名恰好是 `build` 时解析结果相同，所以只有构建到别处才测得出来。
 
-同一个文件的 `:322` 用的是 `${CMAKE_BINARY_DIR}`，那才是正确写法。改这三处时四处一起改，别只改一处。
+## 测试
 
-## 测试有 34 个文件，CI 一个都不跑
+`tests/CMakeLists.txt` 构建 `MetasequoiaImeServerTests`，`tests/src/` 下有 34 个测试源文件。根 `CMakeLists.txt` 的 `include(CTest)` 让 `BUILD_TESTING` 默认为 ON，结尾据此 `add_subdirectory(tests)`，所以这个 target 会被配置也会被编译。
 
-`tests/CMakeLists.txt` 构建 `MetasequoiaImeServerTests`，`tests/src/` 下有 34 个测试源文件。根 `CMakeLists.txt:8` 的 `include(CTest)` 让 `BUILD_TESTING` 默认为 ON，`:411` 据此 `add_subdirectory(tests)`，所以这个 target **会被配置、也会被编译**——测试源码里的编译错误照样会让 CI 变红。但 `.github/workflows/ci.yml` 只有 Configure 和 Build 两步，没有 ctest 步骤，所以**编译得到的测试可执行文件从来没有被运行过**。
+CI 现在会跑 ctest。在此之前只有 Configure 和 Build 两步，测试**编译**得到检查而**断言**不会，一条失败的用例可以长期躺在 main 上而 CI 全绿。
 
-后果：
+本地跑：
 
-- 往 `tests/src/` 加用例，PR 的绿勾只代表用例能编译，不代表断言通过
-- 跨仓 AGENTS.md 要求改 IPC 协议后运行 `tests/src/test_ipc_protocol_constants.cpp`，得自己跑，CI 不会替你跑
-- `src/ipc/ipc.h` 里有 14 条 `static_assert` 守着协议 ABI，那些是编译期的，会随主工程一起检查；测试里的其余断言不会
+```powershell
+ctest --test-dir build-release -C Release --output-on-failure
+```
 
-改了协议或候选逻辑，手动跑一次测试工程，不要依赖 CI。
+有 7 个用例依赖**已安装的词库数据**（`others.db` 的 kaomoji 表、`msime.db`、`helpcodes/*.txt`），裸机和 CI 上没有这些文件。它们通过 `test::require_data_files({...})` 在缺文件时报 `[SKIP]` 而不是 `[FAIL]`——在没有数据的机器上让它们失败，说明不了代码的任何问题。装了输入法的开发机上照常执行。新写依赖词库的用例时沿用这个模式。
+
+`src/ipc/ipc.h` 里有 14 条 `static_assert` 守着协议 ABI，那些是编译期的，构建时就会检查。跨仓 AGENTS.md 要求改 IPC 协议后运行 `tests/src/test_ipc_protocol_constants.cpp`，现在 CI 会覆盖到。
 
 ## uiAccess 与 Topmost 时序
 
