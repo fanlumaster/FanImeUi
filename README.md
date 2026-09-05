@@ -22,8 +22,8 @@ Make sure vcpkg and Boost are installed by **Scoop**.
 cd $env:LOCALAPPDATA
 mkdir metasequoiaime
 cd metasequoiaime
-git clone --recursive https://github.com/metasequoiaime/MSIME-Dict.git
-cd .\MSIME-Dict\makecikudb\xnheulpb\makedb\separated_jp_version
+git clone --recursive https://github.com/metasequoiaime/MSIME-Dict.git MetasequoiaImeDict
+cd .\MetasequoiaImeDict\makecikudb\xnheulpb\makedb\separated_jp_version
 python .\create_db_and_table.py
 python .\insert_data.py
 python .\create_index_for_db.py
@@ -33,13 +33,13 @@ Copy-Item -Path .\out\msime.db -Destination $env:LOCALAPPDATA\metasequoiaime
 **Then**, clone and build MSIME-Server,
 
 ```powershell
-git clone --recursive https://github.com/metasequoiaime/MSIME-Server.git
+git clone --recursive https://github.com/metasequoiaime/MSIME-Server.git MetasequoiaImeServer
 ```
 
 Prepare environment,
 
 ```powershell
-cd MSIME-Server
+cd MetasequoiaImeServer
 python .\scripts\prepare_env.py
 Copy-Item -Path .\assets\tables\* -Destination $env:LOCALAPPDATA\metasequoiaime
 New-Item -ItemType SymbolicLink -Path "$env:LOCALAPPDATA\metasequoiaime\config.toml" -Target ".\assets\config\config.toml"
@@ -48,10 +48,10 @@ New-Item -ItemType SymbolicLink -Path "$env:LOCALAPPDATA\metasequoiaime\config.t
 e.g.
 
 ```powershell
-cd MSIME-Server
+cd MetasequoiaImeServer
 python .\scripts\prepare_env.py
 Copy-Item -Path .\assets\tables\* -Destination $env:LOCALAPPDATA\metasequoiaime
-New-Item -ItemType SymbolicLink -Path "C:\Users\sonnycalcr\AppData\Local\metasequoiaime\config.toml" -Target "C:\Users\sonnycalcr\EDisk\CppCodes\IMECodes\MSIME-Server\assets\config\config.toml"
+New-Item -ItemType SymbolicLink -Path "C:\Users\sonnycalcr\AppData\Local\metasequoiaime\config.toml" -Target "C:\Users\sonnycalcr\EDisk\CppCodes\IMECodes\MetasequoiaImeServer\assets\config\config.toml"
 ```
 
 Then, build and run,
