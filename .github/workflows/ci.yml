@@ -33,12 +33,15 @@ jobs:
           ./vcpkg install boost-locale:x64-windows-static-md boost-json:x64-windows-static-md
           Pop-Location
           "BOOST_ROOT=$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows-static-md" >> $env:GITHUB_ENV
+      # Deliberately not named build: CMakeLists.txt used to hardcode
+      # ${CMAKE_SOURCE_DIR}/build/vcpkg_installed, so any other name failed to link. Building
+      # somewhere else is what keeps that from coming back.
       - name: Configure
         shell: pwsh
         run: >
-          cmake -S . -B build -A x64
+          cmake -S . -B build-release -A x64
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
       - name: Build
         shell: pwsh
-        run: cmake --build build --config Release --parallel
+        run: cmake --build build-release --config Release --parallel
