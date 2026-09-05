@@ -74,10 +74,8 @@ jobs:
             Write-Host "$name OK"
           }
 
-          # 五套辅助码方案。引擎从数据根目录下的 helpcodes/ 读取，本仓 assets/tables
-          # 里只有其中一套，因此需要从 MSIME-HelpCode 取全（合计约 450 KB）。
-          git clone --depth 1 https://github.com/metasequoiaime/MSIME-HelpCode.git "$env:RUNNER_TEMP/helpcode"
-          Copy-Item "$env:RUNNER_TEMP/helpcode/helpcodes" -Destination $dataRoot -Recurse -Force
+          # 与引擎固定到同一个提交的五套辅助码方案。
+          Copy-Item 'MetasequoiaImeEngine/helpcode/helpcodes' -Destination $dataRoot -Recurse -Force
 
           Copy-Item 'assets/tables/*' -Destination $dataRoot -Force
           Copy-Item 'assets/config/config.toml' -Destination $dataRoot -Force
